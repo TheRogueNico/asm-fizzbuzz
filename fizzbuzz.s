@@ -14,31 +14,31 @@ section .text
 	global _start
 
 is_divisible:
-	mov	rdx, 0
-	mov	rax, rbx
-	div	rcx
-	test	rdx, rdx
+	mov	edx, 0
+	mov	eax, ebx
+	div	ecx
+	test	edx, edx
 	ret
 
 _start:
-	mov	rbx, 1		; loop counter
+	mov	ebx, 1		; loop counter
 
 loop:
-	cmp	rbx, 100	; loop condition
+	cmp	ebx, 100	; loop condition
 	jg	end
 
 	; check divisibility by 15
-	mov	rcx, 15
+	mov	ecx, 15
 	call	is_divisible
 	jz	.fizzbuzz
 
 	; check divisibility by 3
-	mov	rcx, 3
+	mov	ecx, 3
 	call	is_divisible
 	jz	.fizz
 
 	; check divisibility by 5
-	mov	rcx, 5
+	mov	ecx, 5
 	call	is_divisible
 	jz	.buzz
 
@@ -47,71 +47,69 @@ loop:
 
 .fizz:
 	; write Fizz
-	mov	rax, 1
-	mov	rdi, 1
-	mov	rsi, fizz_msg
-	mov	rdx, fizz_len
+	mov	eax, 1
+	mov	edi, 1
+	mov	esi, fizz_msg
+	mov	edx, fizz_len
 	syscall
 
-	inc	rbx
+	inc	ebx
 	jmp	loop
 
 .buzz:
 	; write Buzz
-	mov	rax, 1
-	mov	rdi, 1
-	mov	rsi, buzz_msg
-	mov	rdx, buzz_len
+	mov	eax, 1
+	mov	edi, 1
+	mov	esi, buzz_msg
+	mov	edx, buzz_len
 	syscall
 
-	inc	rbx
+	inc	ebx
 	jmp	loop
 
 .fizzbuzz:
 	; write FizzBuzz
-	mov	rax, 1
-	mov	rdi, 1
-	mov	rsi, fizzbuzz_msg
-	mov	rdx, fizzbuzz_len
+	mov	eax, 1
+	mov	edi, 1
+	mov	esi, fizzbuzz_msg
+	mov	edx, fizzbuzz_len
 	syscall
 
-	inc	rbx
+	inc	ebx
 	jmp	loop
 
 number:
-	; we need to convert %rbx to ascii before we print it
-	mov	rax, rbx
-	mov	rcx, 10		; divisor
-	mov	r8, 0		; number of digits
+	; we need to convert %ebx to ascii before we print it
+	mov	eax, ebx
+	mov	ecx, 10		; divisor
+	mov	r8d, 1		; number of digits + newline
 	push	LF
 
 .to_ascii:
-	mov	rdx, 0		; reset rdx
-	div	rcx
+	mov	edx, 0		; reset edx
+	div	ecx
 
 	add	dl, '0'		; convert remainder to ascii
 
 	; push digit into stack and increase digit counter
 	dec	rsp
 	mov	[rsp], dl
-	inc	r8
+	inc	r8d
 
-	cmp	rax, 0
+	cmp	eax, 0
 	jne	.to_ascii
 
-	inc	r8		; to include newline
-
 	; write the number
-	mov	rax, 1
-	mov	rdi, 1
+	mov	eax, 1
+	mov	edi, 1
 	mov	rsi, rsp
-	mov	rdx, r8
+	mov	edx, r8d
 	syscall
 
-	inc	rbx
+	inc	ebx
 	jmp	loop
 
 end:
-	mov	rdi, 0
-	mov	rax, 60
+	mov	edi, 0
+	mov	eax, 60
 	syscall
