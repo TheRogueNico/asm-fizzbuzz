@@ -1,84 +1,102 @@
 section .data
-	fizz_msg db "Fizz", 10
-	buzz_msg db "Buzz", 10
-	fizzbuzz_msg db "FizzBuzz", 10
-	nope db "No FizzBuzz", 10
+	LF	equ 0xA		; newline character
+
+	fizz_msg	db "Fizz", LF
+	fizz_len	equ $ - fizz_msg
+
+	buzz_msg	db "Buzz", LF
+	buzz_len	equ $ - buzz_msg
+
+	fizzbuzz_msg	db "FizzBuzz", LF
+	fizzbuzz_len	equ $ - fizzbuzz_msg
 
 section .text
 	global _start
 
 _start:
-	mov	rbx, 1	; loop counter
+	mov	rbx, 1		; loop counter
 
 loop:
 	cmp	rbx, 100	; loop condition
 	jg	end
 
-	mov 	rax, rbx
-	mov	rcx, 15
+	; check divisibility by 15
 	mov	rdx, 0
+	mov	rax, rbx
+	mov	rcx, 15
 	div	rcx
+
 	cmp	rdx, 0
 	je	fizzbuzz	
 
-	mov 	rax, rbx
-	mov	rcx, 3
+	; check divisibility by 3
 	mov	rdx, 0
+	mov	rax, rbx
+	mov	rcx, 3
 	div	rcx
+
 	cmp	rdx, 0
 	je	fizz
 
-
-	mov 	rax, rbx
-	mov	rcx, 5
+	; check divisibility by 5
 	mov	rdx, 0
+	mov	rax, rbx
+	mov	rcx, 5
 	div	rcx
+
 	cmp	rdx, 0
 	je	buzz
 
-	jmp	nofizzbuzz
+	; otherwise print the number
+	jmp	number
 
 fizz:
-	mov	rdx, 5
-	mov	rsi, fizz_msg
-	mov	rdi, 1
+	; write Fizz
 	mov	rax, 1
-	syscall		
+	mov	rdi, 1
+	mov	rsi, fizz_msg
+	mov	rdx, fizz_len
+	syscall
 
 	inc	rbx
 	jmp	loop
 
 buzz:
-	mov	rdx, 5
-	mov	rsi, buzz_msg
-	mov	rdi, 1
+	; write Buzz
 	mov	rax, 1
-	syscall		
+	mov	rdi, 1
+	mov	rsi, buzz_msg
+	mov	rdx, buzz_len
+	syscall
 
 	inc	rbx
 	jmp	loop
 
 fizzbuzz:
-	mov	rdx, 9
-	mov	rsi, fizzbuzz_msg
-	mov	rdi, 1
+	; write FizzBuzz
 	mov	rax, 1
-	syscall		
+	mov	rdi, 1
+	mov	rsi, fizzbuzz_msg
+	mov	rdx, fizzbuzz_len
+	syscall
 
 	inc	rbx
 	jmp	loop
 
-nofizzbuzz:
+number:
+	; we need to convert %rbx to ascii before we print it
 	mov	rax, rbx
-	mov	rcx, 10
-	mov	r8d, 0	; number of digits
-	push	10	; newline
+	mov	rcx, 10		; divisor
+	mov	r8, 0		; number of digits
+	push	LF
 
 to_ascii:
-	mov	edx, 0
+	mov	rdx, 0		; reset rdx
 	div	rcx
 
-	add	dl, '0'
+	add	dl, '0'		; convert remainder to ascii
+
+	; push digit into stack and increase digit counter
 	dec	rsp
 	mov	[rsp], dl
 	inc	r8
@@ -86,8 +104,9 @@ to_ascii:
 	cmp	rax, 0
 	jne	to_ascii
 
-	inc	r8 	; to include newline
+	inc	r8		; to include newline
 
+	; write the number
 	mov	rax, 1
 	mov	rdi, 1
 	mov	rsi, rsp
