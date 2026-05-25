@@ -69,11 +69,29 @@ fizzbuzz:
 	jmp	loop
 
 nofizzbuzz:
-	mov	rdx, 12
-	; TODO: use reg-to-ascii to print %rbx instead
-	mov	rsi, nope
-	mov	rdi, 1
+	mov	rax, rbx
+	mov	rcx, 10
+	mov	r8d, 0	; number of digits
+	push	10	; newline
+
+to_ascii:
+	mov	edx, 0
+	div	rcx
+
+	add	dl, '0'
+	dec	rsp
+	mov	[rsp], dl
+	inc	r8
+
+	cmp	rax, 0
+	jne	to_ascii
+
+	inc	r8 	; to include newline
+
 	mov	rax, 1
+	mov	rdi, 1
+	mov	rsi, rsp
+	mov	rdx, r8
 	syscall
 
 	inc	rbx
