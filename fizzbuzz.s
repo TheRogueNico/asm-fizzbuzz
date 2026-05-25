@@ -107,7 +107,7 @@ number:
 	mov	edx, r8d
 	syscall
 
-	mov	rbp, rsp	; restore stack pointer
+	mov	rsp, rbp	; restore stack pointer
 
 	inc	ebx
 	jmp	loop
