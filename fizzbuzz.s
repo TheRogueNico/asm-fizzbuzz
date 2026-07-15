@@ -1,3 +1,5 @@
+default rel
+
 section .rodata
 	LF	equ 0xA	; newline character
 
