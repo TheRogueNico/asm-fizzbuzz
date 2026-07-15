@@ -13,6 +13,12 @@ section .rodata
 section .text
 	global _start
 
+write_stdout:
+	mov	eax, 1	; sys_write
+	mov	edi, 1	; stdout
+	syscall
+	ret
+
 _start:
 	; TODO: Replace with the real fizzbuzz loop
 	xor	edi, edi
