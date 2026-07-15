@@ -63,7 +63,53 @@ num_to_ascii:
 	ret
 
 _start:
-	; TODO: Replace with the real fizzbuzz loop
+	mov	ebx, 1	; loop counter, 1-100
+
+.main_loop:
+	cmp	ebx, 100	; loop condition
+	jg	.done
+
+	; check fizzbuzz
+	mov	ecx, 15
+	call	is_divisible
+	jz	.load_fizzbuzz
+
+	; check fizz
+	mov	ecx, 3
+	call	is_divisible
+	jz	.load_fizz
+
+	; check buzz
+	mov	ecx, 5
+	call	is_divisible
+	jz	.load_buzz
+
+.load_number:
+	call	num_to_ascii
+	jmp	.print_continue
+
+.load_fizzbuzz:
+	mov	rsi, fizzbuzz_msg
+	mov	rdx, fizzbuzz_len
+	jmp	.print_continue
+
+.load_fizz:
+	mov	rsi, fizz_msg
+	mov	rdx, fizz_len
+	jmp	.print_continue
+
+.load_buzz:
+	mov	rsi, buzz_msg
+	mov	rdx, buzz_len
+	jmp	.print_continue
+
+.print_continue:
+	call	write_stdout
+	inc	ebx
+	jmp	.main_loop
+
+.done:
+	; sys_exit
 	xor	edi, edi
-	mov	eax, 60	; sys_exit
+	mov	eax, 60
 	syscall
