@@ -16,13 +16,18 @@ section .bss
 section .text
 	global _start
 
+; write a buffer to stdout
+; in: rsi = buffer, rdx = length
+; out: none
 write_stdout:
 	mov	eax, 1	; sys_write
 	mov	edi, 1	; stdout
 	syscall
 	ret
 
-; TODO: Add documentation
+; test if ebx is divisible by ecx
+; in: ebx = number to test, ecx = divisor
+; out: ZF=1 if divisible, ZF=0 otherwise
 is_divisible:
 	xor	edx, edx
 	mov	eax, ebx
@@ -30,7 +35,9 @@ is_divisible:
 	test	edx, edx
 	ret
 
-; TODO: Add documentation
+; convert ebx to a decimal ASCII string in num_buffer
+; in: ebx = number to convert (1-100 for this program)
+; out: rsi = pointer to first digit, rdx = length
 num_to_ascii:
 	mov	eax, ebx
 	mov	ecx, 10
