@@ -4,3 +4,4 @@
 # Executables
 *.out
 fizzbuzz
+fizzbuzz_debug

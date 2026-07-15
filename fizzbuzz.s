@@ -1,5 +1,7 @@
-section .data
-	LF	equ 0xA		; newline character
+default rel
+
+section .rodata
+	LF	equ 0xA	; newline character
 
 	fizz_msg	db "Fizz", LF
 	fizz_len	equ $ - fizz_msg
@@ -10,9 +12,24 @@ section .data
 	fizzbuzz_msg	db "FizzBuzz", LF
 	fizzbuzz_len	equ $ - fizzbuzz_msg
 
+section .bss
+	num_buffer	resb 4	; used by num_to_ascii
+
 section .text
 	global _start
 
+; write a buffer to stdout
+; in: rsi = buffer, rdx = length
+; out: none
+write_stdout:
+	mov	eax, 1	; sys_write
+	mov	edi, 1	; stdout
+	syscall
+	ret
+
+; test if ebx is divisible by ecx
+; in: ebx = number to test, ecx = divisor
+; out: ZF=1 if divisible, ZF=0 otherwise
 is_divisible:
 	xor	edx, edx
 	mov	eax, ebx
@@ -20,102 +37,81 @@ is_divisible:
 	test	edx, edx
 	ret
 
+; convert ebx to a decimal ASCII string in num_buffer
+; in: ebx = number to convert (1-100 for this program)
+; out: rsi = pointer to first digit, rdx = length
+num_to_ascii:
+	mov	eax, ebx
+	mov	ecx, 10
+
+	; the string is being built back to front
+	lea	rdi, [num_buffer + 3]	; last byte of the buffer
+	mov	byte [rdi], LF		; newline goes at the end
+	dec	rdi
+
+.digit_loop:
+	xor	edx, edx
+	div	ecx	; eax = eax/10, edx = eax%10
+	add	dl, '0'	; convert to ASCII code
+	mov	[rdi], dl
+	dec	rdi
+	test	eax, eax
+	jnz	.digit_loop
+
+	inc	rdi		; undo the overshoot in .digit_loop
+	mov	rsi, rdi	; return: pointer to start of text
+	lea	rdx, [num_buffer + 4]
+	sub	rdx, rdi	; return: length = end - start
+	ret
+
 _start:
-	mov	ebx, 1		; loop counter
+	mov	ebx, 1	; loop counter, 1-100
 
-loop:
+.main_loop:
 	cmp	ebx, 100	; loop condition
-	jg	end
+	jg	.done
 
-	; check divisibility by 3
+	; check fizzbuzz
+	mov	ecx, 15
+	call	is_divisible
+	jz	.load_fizzbuzz
+
+	; check fizz
 	mov	ecx, 3
 	call	is_divisible
-	jnz	.check_buzzonly	; it cannot be divisible by 15
+	jz	.load_fizz
 
-	; it is divisible by 3, alos check 5
+	; check buzz
 	mov	ecx, 5
 	call	is_divisible
-	jz	.fizzbuzz	; it is divisible by 15
+	jz	.load_buzz
 
-	jmp	.fizz		; it was only 3
+.load_number:
+	call	num_to_ascii
+	jmp	.print_continue
 
-.check_buzzonly:
-	; it wasn't divisible by 3, now check 5
-	mov	ecx, 5
-	call	is_divisible
-	jz	.buzz
+.load_fizzbuzz:
+	mov	rsi, fizzbuzz_msg
+	mov	rdx, fizzbuzz_len
+	jmp	.print_continue
 
-	; otherwise print the number
-	jmp	number
+.load_fizz:
+	mov	rsi, fizz_msg
+	mov	rdx, fizz_len
+	jmp	.print_continue
 
-.fizz:
-	; write Fizz
-	mov	eax, 1
-	mov	edi, 1
-	mov	esi, fizz_msg
-	mov	edx, fizz_len
-	syscall
+.load_buzz:
+	mov	rsi, buzz_msg
+	mov	rdx, buzz_len
+	jmp	.print_continue
 
+.print_continue:
+	call	write_stdout
 	inc	ebx
-	jmp	loop
+	jmp	.main_loop
 
-.buzz:
-	; write Buzz
-	mov	eax, 1
-	mov	edi, 1
-	mov	esi, buzz_msg
-	mov	edx, buzz_len
-	syscall
-
-	inc	ebx
-	jmp	loop
-
-.fizzbuzz:
-	; write FizzBuzz
-	mov	eax, 1
-	mov	edi, 1
-	mov	esi, fizzbuzz_msg
-	mov	edx, fizzbuzz_len
-	syscall
-
-	inc	ebx
-	jmp	loop
-
-number:
-	; we need to convert %ebx to ascii before we print it
-	mov	rbp, rsp	; save stack pointer
-	mov	eax, ebx
-	mov	ecx, 10		; divisor
-	mov	r8d, 1		; number of digits + newline
-	push	LF
-
-.to_ascii:
-	xor	edx, edx
-	div	ecx
-
-	add	dl, '0'		; convert remainder to ascii
-
-	; push digit into stack and increase digit counter
-	dec	rsp
-	mov	[rsp], dl
-	inc	r8d
-
-	test	eax, eax
-	jnz	.to_ascii
-
-	; write the number
-	mov	eax, 1
-	mov	edi, 1
-	mov	rsi, rsp
-	mov	edx, r8d
-	syscall
-
-	mov	rsp, rbp	; restore stack pointer
-
-	inc	ebx
-	jmp	loop
-
-end:
+.done:
+	; sys_exit
 	xor	edi, edi
 	mov	eax, 60
 	syscall
