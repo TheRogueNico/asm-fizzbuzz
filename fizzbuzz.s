@@ -10,6 +10,9 @@ section .rodata
 	fizzbuzz_msg	db "FizzBuzz", LF
 	fizzbuzz_len	equ $ - fizzbuzz_msg
 
+section .bss
+	num_buffer	resb 4	; used by num_to_ascii
+
 section .text
 	global _start
 
@@ -25,6 +28,31 @@ is_divisible:
 	mov	eax, ebx
 	div	ecx
 	test	edx, edx
+	ret
+
+; TODO: Add documentation
+num_to_ascii:
+	mov	eax, ebx
+	mov	ecx, 10
+
+	; the string is being built back to front
+	lea	rdi, [num_buffer + 3]	; last byte of the buffer
+	mov	byte [rdi], LF		; newline goes at the end
+	dec	rdi
+
+.digit_loop:
+	xor	edx, edx
+	div	ecx	; eax = eax/10, edx = eax%10
+	add	dl, '0'	; convert to ASCII code
+	mov	[rdi], dl
+	dec	rdi
+	test	eax, eax
+	jnz	.digit_loop
+
+	inc	rdi		; undo the overshoot in .digit_loop
+	mov	rsi, rdi	; return: pointer to start of text
+	lea	rdx, [num_buffer + 4]
+	sub	rdx, rdi	; return: length = end - start
 	ret
 
 _start:
