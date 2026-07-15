@@ -19,6 +19,14 @@ write_stdout:
 	syscall
 	ret
 
+; TODO: Add documentation
+is_divisible:
+	xor	edx, edx
+	mov	eax, ebx
+	div	ecx
+	test	edx, edx
+	ret
+
 _start:
 	; TODO: Replace with the real fizzbuzz loop
 	xor	edi, edi
