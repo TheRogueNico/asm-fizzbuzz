@@ -14,7 +14,7 @@ nasm -f elf64 -o fizzbuzz.o fizzbuzz.s
 ld -o fizzbuzz fizzbuzz.o
 ```
 
-Or use `make`:
+Or use `make`.
 
 Now, running `./fizzbuzz` should run the FizzBuzz program for the first 100
 numbers. Here is the output:
